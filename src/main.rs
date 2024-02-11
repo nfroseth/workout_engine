@@ -122,12 +122,13 @@ async fn import_data_from_google_sheets() -> Result<User, Box<dyn Error>> {
 
     // Define the ID of your Google Sheet and the range of cells you want to access.
     let sheet_id = env::var("WORKOUT_ENGINE_SHEET_ID").expect("SHEET_ID is not set in env var.`");
-    let range = "Sheet1!A1:D5";
+    let api_key = env::var("GOOGLE_SHEETS_API_KEY").expect("GOOGLE_SHEETS_API_KEY is not set in env");
+    let range = "Cards!A:H";
 
     // Construct the URL for the Google Sheets API.
     let url = format!(
-        "https://sheets.googleapis.com/v4/spreadsheets/{}/values/{}",
-        sheet_id, range
+        "https://sheets.googleapis.com/v4/spreadsheets/{}/values/{}?key={}",
+        sheet_id, range, api_key
     );
 
     // Send a GET request to the Google Sheets API.
@@ -138,6 +139,9 @@ async fn import_data_from_google_sheets() -> Result<User, Box<dyn Error>> {
 
     // Extract the data from the JSON response.
     let values = json["values"].as_array().ok_or("missing values")?;
+    // println!("Values: {:?}", values);
+    let pretty_values = serde_json::to_string_pretty(&values)?;
+    println!("Values: {}", pretty_values);
 
     // Convert the data into a User struct.
     // This is a placeholder - you'll need to replace this with actual code to convert the data.
