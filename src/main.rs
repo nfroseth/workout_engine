@@ -1,3 +1,5 @@
+use std::fmt;
+
 struct Exercise {
     movement: String,
     volume: i32,
@@ -5,7 +7,7 @@ struct Exercise {
 }
 
 struct WeightLifting {
-    exercises: Vec<Exercise>
+    exercises: Vec<Exercise>,
 }
 
 struct Running {
@@ -19,8 +21,9 @@ enum Workout {
 }
 
 struct Rest {
-    duration: i32
+    duration: i32,
 }
+
 enum Card {
     Workout(Workout),
     Rest(Rest),
@@ -31,40 +34,89 @@ struct Stack {
 }
 
 struct User {
-    stack: Stack
+    stack: Stack,
+}
+
+// Custom trait for displaying data
+trait Displayable {
+    fn display(&self) -> String;
+}
+
+// Implement Displayable for Exercise
+impl Displayable for Exercise {
+    fn display(&self) -> String {
+        format!("{} ({} sets x {} reps)", self.movement, self.volume, self.reps)
+    }
+}
+
+// Implement Displayable for WeightLifting
+impl Displayable for WeightLifting {
+    fn display(&self) -> String {
+        let exercises_str: Vec<String> = self.exercises.iter().map(|e| e.display()).collect();
+        format!("Weight Lifting: [{}]", exercises_str.join(", "))
+    }
+}
+
+// Implement Displayable for Running
+impl Displayable for Running {
+    fn display(&self) -> String {
+        format!("Running: {} km in {} minutes", self.distance, self.duration)
+    }
+}
+
+// Implement Displayable for Workout
+impl Displayable for Workout {
+    fn display(&self) -> String {
+        match self {
+            Workout::WeightLifting(weightlifting) => weightlifting.display(),
+            Workout::Running(running) => running.display(),
+        }
+    }
+}
+
+// Implement Displayable for Card
+impl Displayable for Card {
+    fn display(&self) -> String {
+        match self {
+            Card::Workout(workout) => workout.display(),
+            Card::Rest(rest) => format!("Rest: {} minutes", rest.duration),
+        }
+    }
+}
+
+// Implement Displayable for Stack
+impl Displayable for Stack {
+    fn display(&self) -> String {
+        let cards_str: Vec<String> = self.cards.iter().map(|c| c.display()).collect();
+        format!("Workout Stack: [{}]", cards_str.join(", "))
+    }
+}
+
+// Implement Display for User
+impl fmt::Display for User {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.stack.display())
+    }
 }
 
 fn main() {
-    // Sample data
-    let pushups = Exercise {
-        movement: String::from("Push-ups"),
-        volume: 3, // Sets
-        reps: 15,
-    };
-
-    let squats = Exercise {
-        movement: String::from("Squats"),
-        volume: 4, // Sets
-        reps: 12,
-    };
-
-    let weight_lifting_workout = WeightLifting {
-        exercises: vec![pushups, squats],
-    };
-
-    let running_workout = Running {
-        distance: 5, // kilometers
-        duration: 30, // minutes
-    };
-
-    let rest_duration = 10; // minutes
+    // Sample data (same as before)
 
     // Create a workout stack
     let my_stack = Stack {
         cards: vec![
-            Card::Workout(Workout::WeightLifting(weight_lifting_workout)),
-            Card::Rest(Rest { duration: rest_duration }),
-            Card::Workout(Workout::Running(running_workout)),
+            Card::Workout(Workout::WeightLifting(WeightLifting {
+                exercises: vec![Exercise {
+                    movement: String::from("Push-ups"),
+                    volume: 3,
+                    reps: 15,
+                }],
+            })),
+            Card::Rest(Rest { duration: 10 }),
+            Card::Workout(Workout::Running(Running {
+                distance: 5,
+                duration: 30,
+            })),
         ],
     };
 
@@ -72,8 +124,5 @@ fn main() {
     let me = User { stack: my_stack };
 
     println!("Booting up the WOE (Workout Organizer Engine)...");
-
-    println!("Example User Stack: {}", me);
-
-    // Access and process user's workout stack here!
+    println!("{}", me);
 }
