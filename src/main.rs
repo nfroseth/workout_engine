@@ -150,6 +150,40 @@ async fn import_data_from_google_sheets() -> Result<User, Box<dyn Error>> {
     Ok(user)
 }
 
+fn parse_workout_data(values: &[Vec<String>]) -> Result<Stack, Box<dyn Error>> {
+    let mut cards = Vec::new();
+
+    let mut current_workout = Vec::new();
+    for row in values {
+        match row.get(0) {
+            Some(workout_type) if workout_type == "Pull" || workout_type == "Push" || workout_type == "Legs" => {
+                if !current_workout.is_empty() {
+                    cards.push(Card::Workout(Workout::WeightLifting(WeightLifting {
+                        exercises: current_workout.clone(),
+                    })));
+                    current_workout.clear();
+                }
+            }
+            Some(exercise) if !exercise.is_empty() && exercise != "Week 1" && exercise != "Workout Plan - 6 Days on 1 Day Off" => {
+                current_workout.push(Exercise {
+                    movement: exercise.clone(),
+                    volume: 3, // Placeholder - you'll need to replace this with actual data
+                    reps: 8,   // Placeholder - you'll need to replace this with actual data
+                });
+            }
+            _ => {}
+        }
+    }
+
+    if !current_workout.is_empty() {
+        cards.push(Card::Workout(Workout::WeightLifting(WeightLifting {
+            exercises: current_workout,
+        })));
+    }
+
+    Ok(Stack { cards })
+}
+
 // Function to write data to disk
 fn write_data_to_disk(user: &User) -> std::io::Result<()> {
     let serialized = serde_json::to_string(user).unwrap();
