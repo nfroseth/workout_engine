@@ -1,1 +1,0 @@
-You have both the rust-analyzer (rust-lang.rust-analyzer) and Cargo (panicbit.cargo) plugins enabled, you can disable it or set {"cargo.automaticCheck": false} in settings.json to avoid invoking cargo twice
